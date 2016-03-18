@@ -1,0 +1,42 @@
+<ion-header-bar class="bar-dark">
+  <h1 class="title">TriviApp</h1>
+</ion-header-bar>
+
+<ion-content ng-show='!joined'>
+  <div class='joinGame'>
+    <div class="list">
+      <h1>Input name and password of active game to join</h1>
+      <label class="item item-input item-floating-label" id='box'>
+        <span class="input-label" id='label'>Game Name</span>
+        <input type="text" placeholder="Game Name" id='label'>
+      </label>
+      <label class="item item-input item-floating-label" id='box'>
+        <span class="input-label" id='label'>Game Password</span>
+        <input type="text" placeholder="Game Password" id='label'>
+      </label>
+      <button class="button button-block btn" ng-click="joinGame(game)">
+      Join
+      </button>
+      <button class="button button-block btn" ng-click='back()'>
+      go back to home
+      </button>
+    </div>
+  </div>
+</ion-content>
+<ion-content ng-show='joined'>
+
+    <div class='gamebox'>
+      <h2 class='gameMessage'>{{gameMessage}}</h2>
+      <div ng-repeat='(key, value) in incomingQuestion.choice' class='questionBox'>
+        <button class="button questionBtn btn">
+          {{key}}. {{value}}
+        </button>
+      </div>
+      <div ng-repeat='player in players' ng-class-odd="'odd'" class=viewBox>
+        <img src={{player.imgURL}}>
+        <span class='choice'>{{player.username}}</span>
+        <span class='choice'>{{player.score}}</span>
+      </div>
+    </div>
+
+</ion-content>
