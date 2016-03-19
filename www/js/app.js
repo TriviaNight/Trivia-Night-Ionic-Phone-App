@@ -48,7 +48,7 @@ app.config(function($stateProvider, $urlRouterProvider) {
 app.controller('LandingController', ['$scope', '$location', function($scope, $location){
   $scope.login = function(){
     $location.path('/username');
-  // window.location='http://localhost:3000/auth/google';
+  // window.location=''https://trivia-app-api.herokuapp.com/auth/google';
   }
 }])
 
@@ -68,7 +68,7 @@ app.controller('HomepageController', ['$scope', '$location', function($scope, $l
 app.controller('PlayGameController', ['$scope', '$location', function($scope){
   $scope.joined = false;
   $scope.activeRound = 1;
-  var socket = io('http://localhost:3000/');
+  var socket = io(https://trivia-app-api.herokuapp.com/');
   socket.on('message', function(message){
     console.log(message);
   });
