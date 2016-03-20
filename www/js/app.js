@@ -45,9 +45,13 @@ app.config(function($stateProvider, $urlRouterProvider) {
   });
 })
 
-app.controller('LandingController', ['$scope', '$location', function($scope, $location){
+app.controller('LandingController', ['$scope', '$location',  function($scope, $location ){
   $scope.login = function(){
-    $location.path('/username');
+    // $cordovaOauth.google('967722119321-lp0tvih37uh7ulcochcerlai30girchh.apps.googleusercontent.com', ["https://www.googleapis.com/auth/userinfo.email",
+    //   "https://www.googleapis.com/auth/userinfo.profile"]).then(function(profile){
+        // console.log(profile);
+        $location.path('/username');
+      // })
   // window.location=''https://trivia-app-api.herokuapp.com/auth/google';
   }
 }])
@@ -65,10 +69,10 @@ app.controller('HomepageController', ['$scope', '$location', function($scope, $l
 }])
 
 
-app.controller('PlayGameController', ['$scope', '$location', function($scope){
+app.controller('PlayGameController', ['$scope', '$location', 'PlayerService',function($scope, $location, PlayerService){
   $scope.joined = false;
   $scope.activeRound = 1;
-  var socket = io(https://trivia-app-api.herokuapp.com/');
+  var socket = io('https://trivia-app-api.herokuapp.com/');
   socket.on('message', function(message){
     console.log(message);
   });
@@ -108,14 +112,50 @@ app.controller('PlayGameController', ['$scope', '$location', function($scope){
   }
   $scope.submitResponse = function(key){
     $scope.game.response = key;
-    $scope.game.round = $scope.question.round;
+    $scope.game.round = $scope.incomingQuestion.round;
     console.log($scope.game);
     socket.emit('answer', $scope.game);
   }
   $scope.game = {};
-  $scope.game.name = 'm';
-  $scope.game.password = 'm';
   $scope.game.username = 'prancing pony';
-  $scope.game.userID = 1;
+  $scope.game.userID = 1
   $scope.game.imgURL = 'https://lh5.googleusercontent.com/-z8Rv5svpDoU/AAAAAAAAAAI/AAAAAAAAAVM/hR5eR81ACX8/photo.jpg?sz=50'
+}]);
+
+app.factory('PlayerService', ['$http', function($http){
+  var playerActions = {};
+  var player=null;
+  playerActions.getPlayerProfile = function(){
+    return new Promise(function(resolve, reject){
+      if(player){
+        profile={
+          id: player.id,
+          email: player.email,
+          profile_name: player.profile_name,
+          image_url: player.image_url,
+        };
+        resolve(profile);
+      }
+      else{
+        $http.get('https://trivia-app-api.herokuapp.com/players').then(function(newPlayer){
+          newPlayer = newPlayer.data.data;
+          player = newPlayer;
+          profile={
+              id: player.id,
+              email: player.email,
+              profile_name: player.profile_name,
+              image_url: player.image_url,
+          };
+          resolve(profile);
+        }).catch(function(error){
+          reject(error);
+        });
+      }
+    });
+  };
+  playerActions.clearPlayer = function(){
+    player=null;
+  };
+
+  return playerActions;
 }]);

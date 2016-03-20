@@ -8,17 +8,17 @@
       <h1>Input name and password of active game to join</h1>
       <label class="item item-input item-floating-label" id='box'>
         <span class="input-label" id='label'>Game Name</span>
-        <input type="text" placeholder="Game Name" id='label'>
+        <input type="text" placeholder="Game Name" id='label' ng-model='game.name'>
       </label>
       <label class="item item-input item-floating-label" id='box'>
         <span class="input-label" id='label'>Game Password</span>
-        <input type="text" placeholder="Game Password" id='label'>
+        <input type="text" placeholder="Game Password" id='label' ng-model='game.password'>
       </label>
       <button class="button button-block btn" ng-click="joinGame(game)">
       Join
       </button>
       <button class="button button-block btn" ng-click='back()'>
-      go back to home
+        Home
       </button>
     </div>
   </div>
@@ -28,7 +28,7 @@
     <div class='gamebox'>
       <h2 class='gameMessage'>{{gameMessage}}</h2>
       <div ng-repeat='(key, value) in incomingQuestion.choice' class='questionBox'>
-        <button class="button questionBtn btn">
+        <button class="button questionBtn btn" ng-click="submitResponse(key)">
           {{key}}. {{value}}
         </button>
       </div>
@@ -38,5 +38,8 @@
         <span class='choice'>{{player.score}}</span>
       </div>
     </div>
+    <button class="button button-block btn" ng-click='back()' ng-show='returnToMenu'>
+      Home
+    </button>
 
 </ion-content>
