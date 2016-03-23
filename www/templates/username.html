@@ -1,18 +1,17 @@
-<ion-header-bar class="bar-dark">
-  <h1 class="title">TriviApp</h1>
-</ion-header-bar>
 
-<ion-content>
-  <div class='username'>
-    <div class="list">
-      <h1 class=usernameTag>Please choose a user name for your games.</h1>
-      <label class="item item-input item-floating-label" >
-        <span class="input-label" id='label'>Username</span>
-        <input type="text" placeholder="Username" id='label'>
-      </label>
-      <button class="button button-block btn usrBtn" ng-click='submitName()'>
-      Submit
-      </button>
+<ion-pane>
+  <ion-content>
+    <div class='username'>
+      <div class="list">
+        <h1 class=usernameTag>Please choose a user name for your games.</h1>
+        <label class="item item-input item-floating-label" >
+          <span class="input-label" id='label'>Username</span>
+          <input type="text" placeholder="Username" id='label' ng-model='post.username'>
+        </label>
+        <button class="button button-block btn usrBtn" ng-click='submitName()'>
+        Submit
+        </button>
+      </div>
     </div>
-  </div>
-</ion-content>
+  </ion-content>
+</ion-pane>

@@ -1,14 +1,17 @@
 <ion-pane>
-  <ion-header-bar class="bar-dark">
-    <h1 class="title">TriviApp</h1>
-  </ion-header-bar>
 
-
-  <ion-content>
+  <ion-content ng-show='!loading'>
     <div class='landingContent'>
       <h1 class='tagline'>Join the trivia fun</h1>
       <P>Sign up or Login to join a hosted trivia game and anwers the questions right from your phone!</p>
       <a class=" button button-block button-assertive" ng-click="login()">Sign in with Google+</a>
+    </div>
+  </ion-content>
+
+  <ion-content ng-show='loading'>
+    <div class='landingContent'>
+      <h1>loading..</h1>
+      <span class="fa fa-cog fa-spin"></span>
     </div>
   </ion-content>
 

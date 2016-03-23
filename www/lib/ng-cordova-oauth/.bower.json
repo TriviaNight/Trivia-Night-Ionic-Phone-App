@@ -38,7 +38,6 @@
     "commit": "404bb513e39843c7ac5b39a00017af3caf5537a7"
   },
   "_source": "git://github.com/nraboy/ng-cordova-oauth.git",
-  "_target": "~0.2.3",
-  "_originalSource": "ng-cordova-oauth",
-  "_direct": true
+  "_target": "^0.2.3",
+  "_originalSource": "ng-cordova-oauth"
 }

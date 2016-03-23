@@ -3,7 +3,7 @@
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
-var app = angular.module('triviapp', ['ionic']);
+var app = angular.module('triviapp', ['ionic', 'ngCordova', 'ngCordovaOauth', 'ngStorage']);
 
 app.run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -23,7 +23,7 @@ app.run(function($ionicPlatform) {
   });
 })
 
-app.config(function($stateProvider, $urlRouterProvider) {
+app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
   $urlRouterProvider.otherwise('/login');
 
   $stateProvider.state('login', {
@@ -43,39 +43,96 @@ app.config(function($stateProvider, $urlRouterProvider) {
     templateUrl: 'templates/join.html',
     controller: 'PlayGameController',
   });
+
+  $httpProvider.interceptors.push(['$q', '$location', '$localStorage', function ($q, $location, $localStorage) {
+     return {
+         'request': function (config) {
+             config.headers = config.headers || {};
+             if ($localStorage.token) {
+                 config.headers.token = $localStorage.token;
+             }
+             return config;
+         },
+         'responseError': function (response) {
+             if (response.status === 401 || response.status === 403) {
+                 $location.path('/');
+             }
+             return $q.reject(response);
+         }
+     };
+  }]);
 })
 
-app.controller('LandingController', ['$scope', '$location',  function($scope, $location ){
-  $scope.login = function(){
-    // $cordovaOauth.google('967722119321-lp0tvih37uh7ulcochcerlai30girchh.apps.googleusercontent.com', ["https://www.googleapis.com/auth/userinfo.email",
-    //   "https://www.googleapis.com/auth/userinfo.profile"]).then(function(profile){
-        // console.log(profile);
-        $location.path('/username');
-      // })
-  // window.location=''https://trivia-app-api.herokuapp.com/auth/google';
-  }
+app.controller('LandingController', ['$scope', '$location', '$cordovaOauth', '$http', '$localStorage', function($scope, $location, $cordovaOauth, $http, $localStorage){
+  $scope.loading = false;
+
+  $scope.login = function() {
+    $cordovaOauth.google("967722119321-lp0tvih37uh7ulcochcerlai30girchh.apps.googleusercontent.com", ["https://www.googleapis.com/auth/plus.profile.emails.read"]).then(function(result) {
+        $scope.loading = true;
+        $http.post('https://trivia-app-api.herokuapp.com/auth/google/mobile', result).then(function(user){
+          $localStorage.token = user.data.data.token;
+          console.log($localStorage.token);
+          $scope.loading = false;
+          if(user.data.data.profile_name){
+            $location.path('/homepage');
+          }else{
+            $location.path('/username');
+          }
+        })
+    }, function(error) {
+        console.log(error);
+    });
+}
 }])
 
-app.controller('UsernameController', ['$scope', '$location', function($scope, $location){
+app.controller('UsernameController', ['$scope', '$location', '$http', function($scope, $location, $http){
+  $scope.post={};
   $scope.submitName = function(){
-    $location.path('/homepage');
+    console.log('submiting');
+    $http.patch('https://trivia-app-api.herokuapp.com/users/username', $scope.post).then(function(update){
+      console.log(update);
+      $location.path('/homepage');
+    });
+
   }
 }])
 
-app.controller('HomepageController', ['$scope', '$location', function($scope, $location){
+app.controller('HomepageController', ['$scope', '$location', 'PlayerService', function($scope, $location, PlayerService){
+  PlayerService.getPlayerProfile().then(function(profile){
+    console.log(profile);
+    $scope.player = profile;
+    $scope.$apply();
+  })
   $scope.joinGame = function(){
     $location.path('/joinGame');
   }
 }])
 
 
-app.controller('PlayGameController', ['$scope', '$location', 'PlayerService',function($scope, $location, PlayerService){
+app.controller('PlayGameController', ['$scope', '$location', 'PlayerService', function($scope, $location, PlayerService){
+  PlayerService.getPlayerProfile().then(function(profile){
+    $scope.player = profile;
+    $scope.game = {};
+    $scope.game.username = profile.profile_name;
+    $scope.game.userID = profile.id;
+    $scope.game.imgURL = profile.image_url;
+    $scope.$apply();
+  })
+  $scope.returnToMenu = false;
   $scope.joined = false;
   $scope.activeRound = 1;
   var socket = io('https://trivia-app-api.herokuapp.com/');
   socket.on('message', function(message){
     console.log(message);
+    $scope.$apply();
   });
+  socket.on('fail', function(message){
+    $scope.gameMessage = message;
+  });
+  socket.on('gameToken', function(token){
+    $scope.joined = true
+    $scope.gameMessage = 'Waiting for host to begin game'
+  })
   socket.on('question', function(question){
     console.log(question);
     $scope.gameMessage=question.question
@@ -83,11 +140,11 @@ app.controller('PlayGameController', ['$scope', '$location', 'PlayerService',fun
     $scope.incomingQuestion = question;
     $scope.$apply();
   });
-  socket.on('round over', function(players){
-    $scope.gameMessage="Current Standings after round: "+$scope.activeRound;
+  socket.on('round over', function(gameState){
+    $scope.gameMessage="Correct Answer was "+gameState.answer+" Current Standings after round: "+$scope.activeRound;
     $scope.activeRound++;
     $scope.incomingQuestion = {};
-    $scope.players = players;
+    $scope.players = gameState.players;
     $scope.$apply();
   });
   socket.on('game over', function(players){
@@ -101,11 +158,12 @@ app.controller('PlayGameController', ['$scope', '$location', 'PlayerService',fun
     socket.disconnect();
   });
   $scope.joinGame = function(){
-    $scope.joined = true
-    $scope.gameMessage = 'Waiting for host to begin game'
+
     console.log($scope.game)
     socket.emit('joinGame', $scope.game)
   }
+
+
 
   $scope.back = function(){
     $location.path('/homepage');
@@ -116,10 +174,7 @@ app.controller('PlayGameController', ['$scope', '$location', 'PlayerService',fun
     console.log($scope.game);
     socket.emit('answer', $scope.game);
   }
-  $scope.game = {};
-  $scope.game.username = 'prancing pony';
-  $scope.game.userID = 1
-  $scope.game.imgURL = 'https://lh5.googleusercontent.com/-z8Rv5svpDoU/AAAAAAAAAAI/AAAAAAAAAVM/hR5eR81ACX8/photo.jpg?sz=50'
+
 }]);
 
 app.factory('PlayerService', ['$http', function($http){
@@ -145,6 +200,7 @@ app.factory('PlayerService', ['$http', function($http){
               email: player.email,
               profile_name: player.profile_name,
               image_url: player.image_url,
+              rating: player.rating,
           };
           resolve(profile);
         }).catch(function(error){

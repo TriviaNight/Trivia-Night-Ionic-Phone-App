@@ -4,10 +4,16 @@ p{
   margin-bottom: 50px;
   line-height: 40px;
 }
+ion-pane{
+  background-color: rgb(35, 97, 174);
+}
 .btn{
   color: black;
   background: rgb(220, 170, 10);
   border-color: rgb(220, 170, 10);
+}
+.fa-spin{
+  font-size: 6em;
 }
 .joinGame{
   width:100%;
@@ -56,6 +62,9 @@ p{
   align-items: center;
   text-align: center;
   background: rgb(35, 97, 174);
+}
+.red{
+  color: red;
 }
 .scroll{
   height:100%;
